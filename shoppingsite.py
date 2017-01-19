@@ -7,10 +7,11 @@ Authors: Joel Burton, Christian Fernandez, Meggie Mahnken, Katie Byers.
 """
 
 
-from flask import Flask, render_template, redirect, flash, session
+from flask import Flask, render_template, redirect, flash, session, request
 import jinja2
 
 import melons
+import customers
 
 
 app = Flask(__name__)
@@ -87,6 +88,7 @@ def show_shopping_cart():
             melon.total_price = melon.quantity * melon.price
             all_melons.append(melon)
             total_cart_price += melon.total_price
+    total_cart_price = "$%.2f" % total_cart_price
 
     return render_template("cart.html", melons=all_melons, total=total_cart_price)
 
@@ -110,10 +112,7 @@ def add_to_cart(melon_id):
     # - flash a success message
     # - redirect the user to the cart page
     if 'cart' in session:
-        if melon_id in session['cart']:
-            session['cart'][melon_id] += 1
-        else:
-            session['cart'][melon_id] = 1
+        session['cart'][melon_id] = session['cart'].get(melon_id, 0) + 1
     else:
         session['cart'] = {}
         session['cart'][melon_id] = 1
@@ -137,21 +136,19 @@ def process_login():
     dictionary, look up the user, and store them in the session.
     """
 
-    # TODO: Need to implement this!
+    email = request.form.get('email')
+    if email not in customers.customers:
+        flash("Email or password incorrect")
+        return redirect("/login")
 
-    # The logic here should be something like:
-    #
-    # - get user-provided name and password from request.form
-    # - use customers.get_by_email() to retrieve corresponding Customer
-    #   object (if any)
-    # - if a Customer with that email was found, check the provided password
-    #   against the stored one
-    # - if they match, store the user's email in the session, flash a success
-    #   message and redirect the user to the "/melons" route
-    # - if they don't, flash a failure message and redirect back to "/login"
-    # - do the same if a Customer with that email doesn't exist
-
-    return "Oops! This needs to be implemented"
+    password = request.form.get('password')
+    if password == customers.customers[email].password:
+        session['logged_in_customer_email'] = email
+        flash("Login successful!")
+        return redirect("/melons")
+    else:
+        flash("Email or password incorrect")
+        return redirect("/login")
 
 
 @app.route("/checkout")

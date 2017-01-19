@@ -9,8 +9,8 @@
             <tr>
                 <th>{{ melon.common_name }}</th>
                 <th>{{ melon.quantity }}</th>
-                <th>{{ melon.price }}</th>
-                <th>{{ melon.total_price }}</th>
+                <th>{{ melon.price_str() }}</th>
+                <th>{{ melon.total_price_str() }}</th>
             </tr>
         {% endfor %}
         </tbody>
